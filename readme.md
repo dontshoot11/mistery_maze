@@ -1,3 +1,3 @@
-Videogame, created using three.js
+pure js 3d videogame
 
-https://dontshoot11.github.io/shooter/
+kudos for engine and insiration to https://twitter.com/ivanov_dev
