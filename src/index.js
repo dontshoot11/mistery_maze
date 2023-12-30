@@ -1,27 +1,10 @@
-const map = [
-	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-	[1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1],
-	[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-	[1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-	[1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
-	[1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1],
-	[1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
-	[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1],
-	[1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-];
-
+import { map } from "./map";
 const SCREEN_WIDTH = window.innerWidth;
 const SCREEN_HEIGHT = window.innerHeight;
 
 const TICK = 30;
 
 const CELL_SIZE = 32;
-
-const PLAYER_SCALE = 0.75;
-
-const PLAYER_SIZE = CELL_SIZE * PLAYER_SCALE;
 
 const FOV = toRadians(60);
 
@@ -52,34 +35,35 @@ function clearScreen() {
 	context.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
-function renderMinimap(posX = 0, posY = 0, rays) {
+function renderMinimap(posX = 0, posY = 0, scale, rays) {
+	const cellSize = scale * CELL_SIZE;
 	map.forEach((row, y) => {
 		row.forEach((cell, x) => {
 			if (cell) {
 				context.fillStyle = "grey";
 				context.fillRect(
-					posX + x * PLAYER_SIZE,
-					posY + y * PLAYER_SIZE,
-					PLAYER_SIZE,
-					PLAYER_SIZE
+					posX + x * cellSize,
+					posY + y * cellSize,
+					cellSize,
+					cellSize
 				);
 			}
 		});
 	});
 	context.fillStyle = "blue";
 	context.fillRect(
-		posX + player.x * PLAYER_SCALE - 10 / 2,
-		posY + player.y * PLAYER_SCALE - 10 / 2,
+		posX + player.x * scale - 10 / 2,
+		posY + player.y * scale - 10 / 2,
 		10,
 		10
 	);
 
 	context.strokeStyle = "blue";
 	context.beginPath();
-	context.moveTo(player.x * PLAYER_SCALE, player.y * PLAYER_SCALE);
+	context.moveTo(player.x * scale, player.y * scale);
 	context.lineTo(
-		(player.x + Math.cos(player.angle) * 20) * PLAYER_SCALE,
-		(player.y + Math.sin(player.angle) * 20) * PLAYER_SCALE
+		(player.x + Math.cos(player.angle) * 20) * scale,
+		(player.y + Math.sin(player.angle) * 20) * scale
 	);
 	context.closePath();
 	context.stroke();
@@ -87,16 +71,15 @@ function renderMinimap(posX = 0, posY = 0, rays) {
 	context.strokeStyle = COLORS.rays;
 	rays.forEach((ray) => {
 		context.beginPath();
-		context.moveTo(player.x * PLAYER_SCALE, player.y * PLAYER_SCALE);
+		context.moveTo(player.x * scale, player.y * scale);
 		context.lineTo(
-			(player.x + Math.cos(ray.angle) * ray.distance) * PLAYER_SCALE,
-			(player.y + Math.sin(ray.angle) * ray.distance) * PLAYER_SCALE
+			(player.x + Math.cos(ray.angle) * ray.distance) * scale,
+			(player.y + Math.sin(ray.angle) * ray.distance) * scale
 		);
 		context.closePath();
 		context.stroke();
 	});
 }
-
 function toRadians(deg) {
 	return (deg * Math.PI) / 180;
 }
@@ -214,7 +197,6 @@ function movePlayer() {
 	if (collisionDetect) {
 		player.x -= Math.cos(player.angle) * player.speed;
 		player.y -= Math.sin(player.angle) * player.speed;
-		return;
 	} else {
 		player.x += Math.cos(player.angle) * player.speed;
 		player.y += Math.sin(player.angle) * player.speed;
@@ -244,7 +226,7 @@ function gameLoop() {
 	movePlayer();
 	const rays = getRays();
 	renderScene(rays);
-	renderMinimap(0, 0, rays);
+	renderMinimap(0, 0, 0.25, rays);
 }
 
 setInterval(gameLoop, TICK);
@@ -256,12 +238,16 @@ function checkCollision(x, y) {
 	return wall === 1;
 }
 
+canvas.addEventListener("click", () => {
+	//canvas.requestPointerLock();
+});
+
 document.addEventListener("keydown", (e) => {
 	if (e.key === "w") {
-		player.speed = 2;
+		player.speed = 1;
 	}
 	if (e.key === "s") {
-		player.speed = -2;
+		player.speed = -1;
 	}
 	if (e.key === "a") {
 		player.angle -= toRadians(5);
@@ -269,6 +255,10 @@ document.addEventListener("keydown", (e) => {
 	if (e.key === "d") {
 		player.angle += toRadians(5);
 	}
+});
+
+document.addEventListener("mousemove", function (event) {
+	//	player.angle += toRadians(event.movementX);
 });
 
 document.addEventListener("keyup", (e) => {
