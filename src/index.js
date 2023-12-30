@@ -208,8 +208,8 @@ function movePlayer() {
 		(player.y += Math.sin(player.angle) * player.speed)
 	);
 	if (collisionDetect) {
-		console.log("collision");
-		player.speed = 0;
+		player.x -= Math.cos(player.angle) * player.speed;
+		player.y -= Math.sin(player.angle) * player.speed;
 		return;
 	} else {
 		player.x += Math.cos(player.angle) * player.speed;
@@ -249,7 +249,6 @@ function checkCollision(x, y) {
 	const cellX = Math.floor(player.x / CELL_SIZE);
 	const cellY = Math.floor(player.y / CELL_SIZE);
 	const wall = map[cellY][cellX];
-	//	console.log(wall);
 	return wall === 1;
 }
 
