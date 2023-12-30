@@ -19,6 +19,8 @@ const COLORS = {
 const player = {
 	x: CELL_SIZE * 1.5,
 	y: CELL_SIZE * 2,
+	width: CELL_SIZE / 2,
+	height: CELL_SIZE / 2,
 	angle: toRadians(0),
 	speed: 0,
 };
@@ -189,18 +191,45 @@ function getRays() {
 	});
 }
 
+const playerPadding = 0.1 * CELL_SIZE; // Например, 10% от размера ячейки
+
 function movePlayer() {
-	const collisionDetect = checkCollision(
-		(player.x += Math.cos(player.angle) * player.speed),
-		(player.y += Math.sin(player.angle) * player.speed)
-	);
-	if (collisionDetect) {
-		player.x -= Math.cos(player.angle) * player.speed;
-		player.y -= Math.sin(player.angle) * player.speed;
-	} else {
-		player.x += Math.cos(player.angle) * player.speed;
-		player.y += Math.sin(player.angle) * player.speed;
+	const moveStep = player.speed;
+	const potentialX = player.x + Math.cos(player.angle) * moveStep;
+	const potentialY = player.y + Math.sin(player.angle) * moveStep;
+
+	if (!checkCollision(potentialX, player.y, playerPadding)) {
+		player.x = potentialX;
 	}
+
+	if (!checkCollision(player.x, potentialY, playerPadding)) {
+		player.y = potentialY;
+	}
+}
+
+function checkCollision(x, y, padding) {
+	const corners = getPlayerCorners(x, y, padding);
+	for (const corner of corners) {
+		if (isWallAt(corner.x, corner.y)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function getPlayerCorners(x, y, padding) {
+	return [
+		{ x: x - player.width / 2 - padding, y: y - player.height / 2 - padding },
+		{ x: x + player.width / 2 + padding, y: y - player.height / 2 - padding },
+		{ x: x - player.width / 2 - padding, y: y + player.height / 2 + padding },
+		{ x: x + player.width / 2 + padding, y: y + player.height / 2 + padding },
+	];
+}
+
+function isWallAt(x, y) {
+	const cellX = Math.floor(x / CELL_SIZE);
+	const cellY = Math.floor(y / CELL_SIZE);
+	return map[cellY] && map[cellY][cellX] === 1;
 }
 
 function renderScene(rays) {
@@ -230,13 +259,6 @@ function gameLoop() {
 }
 
 setInterval(gameLoop, TICK);
-
-function checkCollision(x, y) {
-	const cellX = Math.floor(player.x / CELL_SIZE);
-	const cellY = Math.floor(player.y / CELL_SIZE);
-	const wall = map[cellY][cellX];
-	return wall === 1;
-}
 
 canvas.addEventListener("click", () => {
 	//canvas.requestPointerLock();
